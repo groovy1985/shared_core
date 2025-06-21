@@ -45,9 +45,21 @@ def evaluate(text: str) -> dict:
     return scores
 
 
+def total_scores(scores: dict) -> dict:
+    """
+    KZ（60点満点）・HX（40点満点）の合計スコア算出
+    """
+    kz_total = sum(scores[k] for k in KZ_KEYS)
+    hx_total = sum(scores[h] for h in HX_KEYS)
+    return {"KZ": kz_total, "HX": hx_total}
+
+
 if __name__ == "__main__":
     sample = "主語が再帰して吊構文が旋回していた。沈黙が残響を呼んだ。"
     result = evaluate(sample)
+    total = total_scores(result)
     print("KZHXスコア:")
     for key in ALL_KEYS:
         print(f"{key}: {result[key]}")
+    print(f"\nKZ: {total['KZ']} / 60")
+    print(f"HX: {total['HX']} / 40")
