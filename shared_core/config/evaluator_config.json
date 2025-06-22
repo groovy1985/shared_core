@@ -1,0 +1,15 @@
+{
+  "mode": "simple",  // or "random" or "gpt"
+  "kzhx_weights": {
+    "MOD": 1.0,
+    "DCC": 1.0,
+    "STR": 1.0,
+    "PHN": 1.0,
+    "DYN": 1.0,
+    "SIL": 1.0,
+    "ETH": 1.0,
+    "RTN": 1.0,
+    "PRX": 1.0
+  },
+  "token_limit": 280
+}
