@@ -4,40 +4,60 @@ import os
 import json
 from datetime import datetime
 
-def write_outputs(text, eval_result, classification, output_dir, file_id):
+def save_raw_post(bot_name, text):
     """
-    評価済構文とmeta情報を指定フォルダに保存する。
-
-    Parameters:
-        text (str): 評価対象の構文本文
-        eval_result (dict): evaluatorの出力（KZHXスコア）
-        classification (dict): scorerの出力（ランク、PRX、SC判定）
-        output_dir (str): 保存先のBot別出力ディレクトリ（例："poemkun/output"）
-        file_id (str): 保存ファイル名の接頭辞（例："01"）
-
-    Returns:
-        str: 保存先ファイルパス
+    構文死体（未評価ポスト）を Syntaxtemple/raw_post/{bot}/ に保存
     """
-    rank = classification["rank"]
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    now = datetime.now().strftime("%Y%m%d_%H%M%S")
+    dir_path = f"Syntaxtemple/raw_post/{bot_name}"
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, f"{now}.txt")
 
-    # 本文保存パス
-    text_dir = os.path.join(output_dir, rank)
-    os.makedirs(text_dir, exist_ok=True)
-    text_path = os.path.join(text_dir, f"{file_id}.txt")
-
-    # meta保存パス
-    meta_dir = os.path.join(output_dir, "meta")
-    os.makedirs(meta_dir, exist_ok=True)
-    meta_path = os.path.join(meta_dir, f"{file_id}_meta.json")
-
-    # 保存処理
-    with open(text_path, "w", encoding="utf-8") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(text.strip())
 
+    print(f"✅ raw_post 保存完了: {file_path}")
+    return file_path
+
+
+def save_evaluated(bot_name, text, eval_result, classification, file_id=None):
+    """
+    評価済構文とメタ情報を Syntaxtemple/evaluated/{bot}/ に保存
+    """
+    now = datetime.now().strftime("%Y%m%d_%H%M%S") if file_id is None else file_id
+    base_dir = f"Syntaxtemple/evaluated/{bot_name}"
+    os.makedirs(base_dir, exist_ok=True)
+
+    # 本文保存
+    text_path = os.path.join(base_dir, f"{now}.txt")
+    meta_path = os.path.join(base_dir, f"{now}_meta.json")
+
+    # ヘッダ付き本文保存
+    header = [
+        "---",
+        f"KZ: {eval_result.get('KZ')}",
+        f"HX: {eval_result.get('HX')}",
+        f"Fランク: {classification.get('rank')}",
+        f"MOD: {eval_result['KZ_scores'].get('MOD')} / "
+        f"DCC: {eval_result['KZ_scores'].get('DCC')} / "
+        f"STR: {eval_result['KZ_scores'].get('STR')} / "
+        f"PHN: {eval_result['KZ_scores'].get('PHN')} / "
+        f"DYN: {eval_result['KZ_scores'].get('DYN')}",
+        f"SIL: {eval_result['HX_scores'].get('SIL')} / "
+        f"ETH: {eval_result['HX_scores'].get('ETH')} / "
+        f"RTN: {eval_result['HX_scores'].get('RTN')} / "
+        f"PRX: {eval_result['HX_scores'].get('PRX')}",
+        "---", ""
+    ]
+
+    with open(text_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(header))
+        f.write(text.strip())
+
+    # メタ情報保存
     meta = {
-        "date": date_str,
-        "rank": rank,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "rank": classification["rank"],
         "KZ": eval_result.get("KZ"),
         "HX": eval_result.get("HX"),
         "KZ_scores": eval_result.get("KZ_scores"),
@@ -49,18 +69,5 @@ def write_outputs(text, eval_result, classification, output_dir, file_id):
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
 
+    print(f"✅ evaluated 保存完了: {text_path}")
     return text_path
-
-# テスト実行例
-if __name__ == "__main__":
-    dummy_text = "構文の死体を運ぶ音がまだ濡れている。"
-    dummy_eval = {
-        "KZ": 48, "HX": 29,
-        "KZ_scores": {"MOD": 12, "DCC": 8, "STR": 10, "PHN": 8, "DYN": 10},
-        "HX_scores": {"SIL": 7, "ETH": 5, "RTN": 8, "PRX": 9}
-    }
-    dummy_class = {
-        "rank": "F2", "KZ": 48, "HX": 29, "PRX": 9, "SC_candidate": True
-    }
-
-    write_outputs(dummy_text, dummy_eval, dummy_class, "poemkun/output", "01")
