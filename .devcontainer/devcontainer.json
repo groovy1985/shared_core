@@ -1,0 +1,8 @@
+{
+  "name": "SyntaxCore DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [8000],
+  "postCreateCommand": "echo '🚀 Dev Container ready! Start the API with: uvicorn api_server:app --host 0.0.0.0 --port 8000 --reload'"
+}
