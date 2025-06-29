@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from evaluator import evaluate  # shared_core直下なのでこれでOK
+from evaluator import evaluate  # shared_core直下ならこれでOK
 
 app = FastAPI(title="Syntax Evaluator API")
 
